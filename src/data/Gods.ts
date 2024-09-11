@@ -5,6 +5,14 @@ export enum Pantheons {
   Atlantean = "Atlantean",
 }
 
+export enum Ages {
+  I = "Archaic",
+  II = "Classical",
+  III = "Heroic",
+  IV = "Mythic",
+  V = "Wonder",
+}
+
 export interface IGod {
   name: string;
   pantheon: Pantheons;
