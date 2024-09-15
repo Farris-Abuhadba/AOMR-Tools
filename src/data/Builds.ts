@@ -6,7 +6,15 @@ export interface IBuild {
   description?: string;
   gods: IGod[];
   tags?: string[];
-  steps: IBuildGuideStep[];
+  guide: IBuildGuide;
+}
+
+interface IBuildGuide {
+  i?: IBuildGuideStep[];
+  ii?: IBuildGuideStep[];
+  iii?: IBuildGuideStep[];
+  iv?: IBuildGuideStep[];
+  v?: IBuildGuideStep[];
 }
 
 export interface IBuildGuideStep {
