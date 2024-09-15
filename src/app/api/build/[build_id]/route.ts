@@ -9,7 +9,7 @@ export async function GET(
   try {
     const build = await prisma.build.findUnique({
       where: {
-        id: params.build_id, // The ID is a string, mapped to the ObjectId
+        id: params.build_id,
       },
     });
 
