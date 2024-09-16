@@ -1,9 +1,9 @@
-// API for fetching a single build from ID
+// API for fetching a single build by ID
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET(
-  _req: Request,
+  req: Request,
   { params }: { params: { build_id: string } }
 ) {
   try {
@@ -19,6 +19,7 @@ export async function GET(
 
     return NextResponse.json(build);
   } catch (error) {
+    console.error(error);
     return NextResponse.json(
       { error: "Failed to fetch build" },
       { status: 500 }
