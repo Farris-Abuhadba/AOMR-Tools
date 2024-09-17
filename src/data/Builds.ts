@@ -1,15 +1,27 @@
 import { IGod } from "@/data/Gods";
 
-export interface IBuildGuide {
+export interface IBuild {
+  id?: string;
   name: string;
-  author: IUser;
+  author: string; // IUser id
+  rating: number;
+  description?: string;
+  tags?: string[];
   gods: IGod[];
-  tags: string[];
-  steps: (IBuildGuideStep | IBuildGuideNote)[];
+  guide: IBuildGuide;
+}
+
+interface IBuildGuide {
+  i?: IBuildGuideStep[];
+  ii?: IBuildGuideStep[];
+  iii?: IBuildGuideStep[];
+  iv?: IBuildGuideStep[];
+  v?: IBuildGuideStep[];
 }
 
 export interface IBuildGuideStep {
   description: string;
+  isNote: boolean;
   time?: number;
   workingBuilding?: number;
   workingFood?: number;
@@ -18,11 +30,8 @@ export interface IBuildGuideStep {
   workingFavor?: number;
 }
 
-export interface IBuildGuideNote {
-  description: string;
-}
-
 export interface IUser {
+  id: string;
   username: string;
-  rating: number;
+  builds: string[]; // List of build ids
 }
