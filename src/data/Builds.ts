@@ -1,11 +1,13 @@
 import { IGod } from "@/data/Gods";
 
 export interface IBuild {
+  id?: string;
   name: string;
-  author: IUser;
+  author: string; // IUser id
+  rating: number;
   description?: string;
-  gods: IGod[];
   tags?: string[];
+  gods: IGod[];
   guide: IBuildGuide;
 }
 
@@ -29,6 +31,7 @@ export interface IBuildGuideStep {
 }
 
 export interface IUser {
+  id: string;
   username: string;
-  rating: number;
+  builds: string[]; // List of build ids
 }
