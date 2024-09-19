@@ -11,7 +11,7 @@ export interface IBuild {
   guide: IBuildGuide;
 }
 
-interface IBuildGuide {
+export interface IBuildGuide {
   i?: IBuildGuideStep[];
   ii?: IBuildGuideStep[];
   iii?: IBuildGuideStep[];
