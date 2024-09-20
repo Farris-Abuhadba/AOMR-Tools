@@ -1,6 +1,6 @@
 // API for fetching a single build by ID
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
 export async function GET(
   req: Request,
@@ -8,8 +8,14 @@ export async function GET(
 ) {
   try {
     const build = await prisma.build.findUnique({
-      where: {
-        id: params.build_id,
+      where: { id: params.build_id },
+      include: {
+        gods: true,
+        guides: {
+          include: {
+            steps: true,
+          },
+        },
       },
     });
 
@@ -19,9 +25,9 @@ export async function GET(
 
     return NextResponse.json(build);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching build:", error);
     return NextResponse.json(
-      { error: "Failed to fetch build" },
+      { error: "Failed to fetch build." },
       { status: 500 }
     );
   }

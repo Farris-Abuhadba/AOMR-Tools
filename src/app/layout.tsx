@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { SessionProvider } from "next-auth/react";
 import {
   constantia,
   constantiaBold,
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${constantia.variable} ${constantiaBold.variable} antialiased`}
       >
-        <MantineProvider>{children}</MantineProvider>
+        <SessionProvider>
+          <MantineProvider>{children}</MantineProvider>
+        </SessionProvider>
       </body>
     </html>
   );

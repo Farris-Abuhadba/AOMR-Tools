@@ -7,34 +7,104 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String  @map("user_id")
+  type               String
+  provider           String
+  providerAccountId  String  @map("provider_account_id")
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+model God {
+  id       String   @id @default(cuid())
+  name     String   @unique
+  pantheon Pantheon
+  builds   Build[]  @relation("BuildToGod")
+}
+
+enum Pantheon {
+  Greek
+  Egyptian
+  Norse
+  Atlantean
+}
+
 model Build {
-  id          String       @id @default(uuid())
+  id          String        @id @default(cuid())
   name        String
-  author      String
-  description String
-  gods        String[]  // Array of gods as string[]
-  tags        String[]  // Array of tags as string[]
+  authorId    String
   rating      Float
-  build       BuildSteps[]
+  description String?
+  tags        String[]
+  gods        God[]         @relation("BuildToGod")
+  guides      BuildGuide[]  @relation("BuildToGuide")
 }
 
-model BuildSteps {
-  id               String    @id @default(uuid())
-  buildId          String
-  age              Age?
-  description      String?
-  isNote           Boolean?
-  time             Int?    // Time in seconds
-  workingBuilding  Int?    // Number of workers assigned to building
-  workingFood      Int?   // Number of workers assigned to food gathering
-  workingWood      Int?    // Number of workers assigned to wood gathering
-  workingGold      Int?    // Number of workers assigned to gold gathering
-  workingFavor     Int?    // Number of workers assigned to favor gathering
-  
-  Build            Build  @relation(fields: [buildId], references: [id])
+model BuildGuide {
+  id        String          @id @default(cuid())
+  buildId   String          @map("build_id")
+  build     Build           @relation("BuildToGuide", fields: [buildId], references: [id], onDelete: Cascade)
+  age       GuideAge        // Age of the guide step (e.g., i, ii, iii, etc.)
+  steps     BuildGuideStep[] // One-to-many relation for steps
 }
 
-enum Age {
+model BuildGuideStep {
+  id              String   @id @default(cuid())
+  guideId         String   @map("guide_id")
+  guide           BuildGuide @relation(fields: [guideId], references: [id], onDelete: Cascade)
+  description     String   // Description of the step
+  isNote          Boolean  // Is this step a note
+  time            Int?     // Optional time
+  workingBuilding Int?     // Optional workers on building
+  workingFood     Int?     // Optional workers on food
+  workingWood     Int?     // Optional workers on wood
+  workingGold     Int?     // Optional workers on gold
+  workingFavor    Int?     // Optional workers on favor
+}
+
+enum GuideAge {
   i
   ii
   iii
