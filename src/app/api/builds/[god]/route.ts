@@ -1,9 +1,12 @@
+// API for fetching builds by God
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const godName = searchParams.get("god");
+export async function GET(
+  req: Request,
+  { params }: { params: { god: string } }
+) {
+  const godName = params.god;
 
   if (!godName) {
     return NextResponse.json(
@@ -16,7 +19,17 @@ export async function GET(req: Request) {
     const builds = await prisma.build.findMany({
       where: {
         gods: {
-          has: godName,
+          some: {
+            name: godName,
+          },
+        },
+      },
+      include: {
+        gods: true,
+        guides: {
+          include: {
+            steps: true,
+          },
         },
       },
     });
@@ -30,9 +43,9 @@ export async function GET(req: Request) {
 
     return NextResponse.json(builds);
   } catch (error) {
-    console.error(error);
+    console.error("Error fetching builds:", error);
     return NextResponse.json(
-      { error: "Failed to fetch builds" },
+      { error: "Failed to fetch builds." },
       { status: 500 }
     );
   }

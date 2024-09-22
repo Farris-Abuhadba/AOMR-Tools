@@ -18,7 +18,7 @@ export interface IGod {
   pantheon: Pantheons;
 }
 
-const GODS: { [name: string]: IGod } = {
+export const GODS: { [name: string]: IGod } = {
   Zeus: {
     name: "Zeus",
     pantheon: Pantheons.Greek,

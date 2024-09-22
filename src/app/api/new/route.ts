@@ -1,71 +1,85 @@
-import prisma from "@/lib/prisma";
+// API for creating a new build
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
-
-interface BuildStep {
-  description: string;
-  isNote: boolean;
-  time: number;
-  workingBuilding: number | null;
-  workingFood: number | null;
-  workingWood: number | null;
-  workingGold: number | null;
-  workingFavor: number | null;
-}
-
-interface BuildGuide {
-  name: string;
-  author: string;
-  description: string;
-  gods: string[];
-  tags: string[];
-  rating: number;
-  guide: {
-    [key: string]: BuildStep[];
-  };
-}
+import { IBuild, IBuildGuide, IBuildGuideStep } from "@/data/Builds";
+import { GuideAge } from "@prisma/client";
 
 export async function POST(req: Request) {
   try {
-    // Parse the request body
-    const body: BuildGuide = await req.json();
-
+    const body: IBuild = await req.json();
     const { name, author, description, gods, tags, rating, guide } = body;
 
-    // Dynamically handle all the ages and steps
-    const guideSteps = Object.entries(guide).flatMap(([age, steps]) =>
-      steps.map((step) => ({
-        age: age as "i" | "ii" | "iii" | "iv" | "v",
-        description: step.description || null,
-        isNote: step.isNote || false,
-        time: step.time || null,
-        workingBuilding: step.workingBuilding || null,
-        workingFood: step.workingFood || null,
-        workingWood: step.workingWood || null,
-        workingGold: step.workingGold || null,
-        workingFavor: step.workingFavor || null,
-      }))
+    // Ensure the gods exist in the database and get their IDs
+    const godIds = await Promise.all(
+      gods.map(async (god) => {
+        const godRecord = await prisma.god.findUnique({
+          where: { name: god.name },
+        });
+
+        if (!godRecord) {
+          throw new Error(`God ${god.name} not found in the database.`);
+        }
+
+        return { id: godRecord.id };
+      })
     );
 
-    // Create the Build and associated BuildSteps in the database
+    // First, create the build
     const build = await prisma.build.create({
       data: {
         name,
-        author,
+        authorId: author, // Ensure the author ID is correct
         description,
-        gods,
-        tags,
+        tags: { set: tags || [] },
         rating,
-        build: {
-          create: guideSteps,
+        gods: {
+          connect: godIds, // Connect the build to the gods
         },
       },
     });
 
+    // Insert guide for each age (i, ii, iii, etc.)
+    for (const age in guide) {
+      if (guide.hasOwnProperty(age)) {
+        const steps = guide[age as keyof IBuildGuide];
+
+        // Check if steps exist before proceeding
+        if (steps && steps.length > 0) {
+          // Create the guide for this age
+          const buildGuide = await prisma.buildGuide.create({
+            data: {
+              buildId: build.id,
+              age: age as keyof typeof GuideAge, // Set the age using the enum
+            },
+          });
+
+          // Create each step in the guide
+          await Promise.all(
+            steps.map(async (step: IBuildGuideStep) => {
+              await prisma.buildGuideStep.create({
+                data: {
+                  guideId: buildGuide.id,
+                  description: step.description,
+                  isNote: step.isNote,
+                  time: step.time,
+                  workingBuilding: step.workingBuilding,
+                  workingFood: step.workingFood,
+                  workingWood: step.workingWood,
+                  workingGold: step.workingGold,
+                  workingFavor: step.workingFavor,
+                },
+              });
+            })
+          );
+        }
+      }
+    }
+
     return NextResponse.json(build, { status: 201 });
   } catch (error) {
-    console.error("Error occurred:", error);
+    console.error("Error creating build:", error);
     return NextResponse.json(
-      { error: "Error creating build" },
+      { error: "Failed to create build." },
       { status: 500 }
     );
   }
