@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import { ColorSchemeScript, createTheme, MantineProvider } from "@mantine/core";
 import { SessionProvider } from "next-auth/react";
 import {
   constantia,
@@ -16,21 +16,28 @@ export const metadata: Metadata = {
     "Build guides and other helpful tools for Age of Mythology: Retold",
 };
 
+const theme = createTheme({
+  radius: { none: "0px" },
+  defaultRadius: "none",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="business">
       <head>
         <ColorSchemeScript />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${constantia.variable} ${constantiaBold.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${constantia.variable} ${constantiaBold.variable} antialiased min-h-screen`}
       >
         <SessionProvider>
-          <MantineProvider>{children}</MantineProvider>
+          <MantineProvider defaultColorScheme="dark" theme={theme}>
+            {children}
+          </MantineProvider>
         </SessionProvider>
       </body>
     </html>
